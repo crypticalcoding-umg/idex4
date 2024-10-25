@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustituciones Trigonométricas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #000000; 
+            color: #0051ff; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+        }
+        .calculator { 
+            border: 1px solid #ccc; 
+            padding: 20px; 
+            border-radius: 10px; 
+            width: 100%; 
+            max-width: 600px; 
+            background: #fff; 
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); 
+        }
+        .calculator input, .calculator select, .calculator button { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 5px; 
+            border: 1px solid #ccc; 
+            font-size: 1em; 
+        }
+        .result, .steps { 
+            margin-top: 15px; 
+            padding: 10px; 
+            border-radius: 5px; 
+            white-space: pre-wrap;
+        }
+        .result {
+            font-weight: bold;
+            color: #0051ff;
+            background-color: #ebf4ff;
+        }
+        .steps {
+            background-color: #f8f9fa;
+            font-family: monospace;
+        }
+        .formula {
+            background-color: #e5e7eb;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+        }
+        .tab.active {
+            background: #0044ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sustituciones Trigonométricas</h1>
+    <div class="calculator">
+        <div class="formula">
+            Sustituciones comunes:
+            • Para √(a² - x²): x = a·sin(θ)
+            • Para √(a² + x²): x = a·tan(θ)
+            • Para √(x² - a²): x = a·sec(θ)
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showType('basic')">Básicas</div>
+            <div class="tab" onclick="showType('advanced')">Avanzadas</div>
+        </div>
+
+        <div id="basic-options">
+            <label for="sub-type">Tipo de sustitución:</label>
+            <select id="sub-type">
+                <option value="asqminxsq">∫√(a² - x²)dx</option>
+                <option value="asqplusxsq">∫√(a² + x²)dx</option>
+                <option value="xsqminasq">∫√(x² - a²)dx</option>
+                <option value="asqminxsq_x">∫x·√(a² - x²)dx</option>
+                <option value="asqplusxsq_x">∫x·√(a² + x²)dx</option>
+            </select>
+
+            <label for="a-value">Valor de a:</label>
+            <input type="number" id="a-value" value="1" min="0.1" step="0.1">
+            
+            <label for="coefficient">Coeficiente:</label>
+            <input type="number" id="coefficient" value="1" step="any">
+        </div>
+
+        <div id="advanced-options" style="display: none;">
+            <label for="custom-function">Función personalizada:</label>
+            <input type="text" id="custom-function" placeholder="Ej: x²·√(1 - x²)">
+            
+            <label for="custom-sub">Sustitución a usar:</label>
+            <select id="custom-sub">
+                <option value="sin">x = sin(θ)</option>
+                <option value="tan">x = tan(θ)</option>
+                <option value="sec">x = sec(θ)</option>
+            </select>
+        </div>
+        
+        <button onclick="calculateTrigSub()">Calcular Integral</button>
+        <div class="result" id="result-output"></div>
+        <div class="steps" id="steps-output"></div>
+    </div>
+
+    <script>
+        function showType(type) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('basic-options').style.display = type === 'basic' ? 'block' : 'none';
+            document.getElementById('advanced-options').style.display = type === 'advanced' ? 'block' : 'none';
+        }
+
+        function calculateTrigSub() {
+            const type = document.getElementById("sub-type").value;
+            const a = parseFloat(document.getElementById("a-value").value) || 1;
+            const coefficient = parseFloat(document.getElementById("coefficient").value) || 1;
+            
+            let result = "";
+            let steps = "Pasos de resolución:\n\n";
+            
+            try {
+                switch(type) {
+                    case "asqminxsq":
+                        steps += `1. Para ∫√(${a}² - x²)dx, hacemos la sustitución:\n`;
+                        steps += `   x = ${a}·sin(θ)\n`;
+                        steps += `   dx = ${a}·cos(θ)dθ\n\n`;
+                        steps += `2. Sustituyendo:\n`;
+                        steps += `   √(${a}² - x²) = √(${a}² - ${a}²sin²(θ)) = ${a}·cos(θ)\n\n`;
+                        steps += `3. La integral se convierte en:\n`;
+                        steps += `   ${a}² ∫cos²(θ)dθ = ${a}²(θ/2 + sin(2θ)/4)\n\n`;
+                        steps += `4. Volviendo a x:\n`;
+                        steps += `   θ = arcsin(x/${a})\n`;
+                        result = `${coefficient}(${a}²·arcsin(x/${a})/2 + x·√(${a}² - x²)/2) + C`;
+                        break;
+
+                    case "asqplusxsq":
+                        steps += `1. Para ∫√(${a}² + x²)dx, hacemos la sustitución:\n`;
+                        steps += `   x = ${a}·tan(θ)\n`;
+                        steps += `   dx = ${a}·sec²(θ)dθ\n\n`;
+                        steps += `2. Sustituyendo:\n`;
+                        steps += `   √(${a}² + x²) = √(${a}²(1 + tan²(θ))) = ${a}·sec(θ)\n\n`;
+                        steps += `3. La integral se convierte en:\n`;
+                        steps += `   ${a}² ∫sec³(θ)dθ = ${a}²(sec(θ)·tan(θ)/2 + ln|sec(θ) + tan(θ)|/2)\n\n`;
+                        steps += `4. Volviendo a x:\n`;
+                        steps += `   sec(θ) = √(1 + x²/${a}²)\n`;
+                        result = `${coefficient}(x·√(${a}² + x²)/(2${a}²) + ${a}²·ln|x/${a} + √(1 + x²/${a}²)|/2) + C`;
+                        break;
+
+                    case "xsqminasq":
+                        steps += `1. Para ∫√(x² - ${a}²)dx, hacemos la sustitución:\n`;
+                        steps += `   x = ${a}·sec(θ)\n`;
+                        steps += `   dx = ${a}·sec(θ)·tan(θ)dθ\n\n`;
+                        steps += `2. Sustituyendo:\n`;
+                        steps += `   √(x² - ${a}²) = ${a}·tan(θ)\n\n`;
+                        steps += `3. La integral se convierte en:\n`;
+                        steps += `   ${a}² ∫sec²(θ)·tan(θ)dθ = ${a}²·sec(θ)·tan(θ) - ln|sec(θ) + tan(θ)|\n\n`;
+                        steps += `4. Volviendo a x:\n`;
+                        steps += `   sec(θ) = x/${a}\n`;
+                        result = `${coefficient}(x·√(x² - ${a}²)/2 - ${a}²·ln|x + √(x² - ${a}²)|/2) + C`;
+                        break;
+
+                    case "asqminxsq_x":
+                        steps += `1. Para ∫x·√(${a}² - x²)dx, hacemos la sustitución:\n`;
+                        steps += `   x = ${a}·sin(θ)\n`;
+                        steps += `   dx = ${a}·cos(θ)dθ\n\n`;
+                        steps += `2. Sustituyendo:\n`;
+                        steps += `   x·√(${a}² - x²) = ${a}·sin(θ)·${a}·cos(θ) = ${a}²·sin(θ)cos(θ)\n\n`;
+                        steps += `3. La integral se convierte en:\n`;
+                        steps += `   ${a}³ ∫sin(θ)cos²(θ)dθ = -${a}³·cos³(θ)/3\n\n`;
+                        steps += `4. Volviendo a x:\n`;
+                        steps += `   cos(θ) = √(1 - x²/${a}²)\n`;
+                        result = `${coefficient}(-${a}(${a}² - x²)^(3/2)/3) + C`;
+                        break;
+
+                    case "asqplusxsq_x":
+                        steps += `1. Para ∫x·√(${a}² + x²)dx, hacemos la sustitución:\n`;
+                        steps += `   x = ${a}·tan(θ)\n`;
+                        steps += `   dx = ${a}·sec²(θ)dθ\n\n`;
+                        steps += `2. Sustituyendo:\n`;
+                        steps += `   x·√(${a}² + x²) = ${a}·tan(θ)·${a}·sec(θ)\n\n`;
+                        steps += `3. La integral se convierte en:\n`;
+                        steps += `   ${a}³ ∫tan(θ)sec³(θ)dθ = ${a}³·sec³(θ)/3\n\n`;
+                        steps += `4. Volviendo a x:\n`;
+                        steps += `   sec(θ) = √(1 + x²/${a}²)\n`;
+                        result = `${coefficient}((${a}² + x²)^(3/2)/(3${a})) + C`;
+                        break;
+                }
+                
+                document.getElementById("result-output").innerHTML = `Resultado:\n${result}`;
+                document.getElementById("steps-output").innerHTML = steps;
+            } catch (error) {
+                document.getElementById("result-output").innerHTML = "Error en el cálculo. Por favor verifica los valores ingresados.";
+                document.getElementById("steps-output").innerHTML = "";
+            }
+        }
+    </script>
+</body>
+</html>
